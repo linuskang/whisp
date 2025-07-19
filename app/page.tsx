@@ -1,12 +1,12 @@
 "use client"
 
-import { useSession, signIn, signOut, SessionProvider } from "next-auth/react"
+import { useSession, signOut, SessionProvider } from "next-auth/react"
 import { useEffect, useState } from "react"
-import { Textarea } from "@/components/ui/textarea"  // replace Input import with Textarea
+import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import Link from "next/link"
+import SignInComponent from "@/components/signin"  // import it here
 
 interface Post {
   id: string
@@ -53,47 +53,8 @@ function WhispContent() {
   }
 
   if (!session) {
-    return (
-      <div className="min-h-screen bg-black text-white flex flex-col">
-      <main className="flex-grow flex flex-col items-center justify-center p-4">
-        <div className="max-w-sm w-full flex flex-col items-center text-center space-y-10">
-          <div className="text-8xl md:text-9xl font-mono font-extrabold text-white leading-none text-center">
-            WHISP
-          </div>
-          <div className="w-full">
-            <Button
-              className="w-full bg-white text-black hover:bg-gray-200 py-3 rounded-lg text-lg font-semibold shadow-md transition-colors duration-300"
-              onClick={() => signIn("discord")}  // <-- trigger Discord sign in here
-            >
-              Sign in with Discord
-            </Button>
-            <p className="text-xs text-gray-400 mt-4">
-              By signing in, you agree to the{" "}
-              <Link href="/terms" className="text-blue-500 hover:underline">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link href="/privacy" className="text-blue-500 hover:underline">
-                Privacy Policy.
-              </Link>
-            </p>
-          </div>
-        </div>
-      </main>
-      <footer className="flex flex-wrap justify-center gap-x-4 gap-y-2 p-4 text-xs text-gray-500">
-        <Link href="/about" className="hover:underline">
-          About
-        </Link>
-        <Link href="/terms" className="hover:underline">
-          Terms of Service
-        </Link>
-        <Link href="/privacy" className="hover:underline">
-          Privacy Policy
-        </Link>
-        <span>© {new Date().getFullYear()} Linus Kang Software.</span>
-      </footer>
-    </div>
-    )
+    // Replace the old signin UI here with your imported SignInComponent
+    return <SignInComponent />
   }
 
   return (
@@ -155,7 +116,6 @@ function WhispContent() {
                   {post.content}
                 </p>
               </CardContent>
-
             </Card>
           ))}
         </div>
