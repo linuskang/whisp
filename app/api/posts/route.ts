@@ -113,10 +113,16 @@ export async function DELETE(req: Request) {
       return new NextResponse("Forbidden", { status: 403 })
     }
 
+    await prisma.like.deleteMany({
+      where: { postId },
+    })
+
+    // 🗑️ Then delete the post
     await prisma.post.delete({
       where: { id: postId }
     })
 
+    // 🛎️ Log the deletion
     const embed = {
       title: "Post Deleted",
       description: `A post was deleted by @**${user.name || "Unknown User"}**.`,
