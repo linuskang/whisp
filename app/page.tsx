@@ -6,7 +6,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import SignInComponent from "@/components/signin"  // import it here
+import SignInComponent from "@/components/signin"
+import Sidebar from "@/components/sidebar"
+import { DeletePostDialog } from "@/components/deletePostDialog"
+import Loading from "@/components/loading"
+
 
 interface Post {
   id: string
@@ -14,7 +18,7 @@ interface Post {
   createdAt: string
   author: {
     displayName: string | null
-    accountUsername: string
+    name: string
     image: string | null
   }
 }
@@ -53,74 +57,91 @@ function WhispContent() {
   }
 
   if (!session) {
-    // Replace the old signin UI here with your imported SignInComponent
     return <SignInComponent />
   }
 
   return (
-    <main className="max-w-xl mx-auto p-4">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Post something, {session.user?.name}</CardTitle>
-        </CardHeader>
-        <Separator />
-        <CardContent>
-          <Textarea
-            value={newPost}
-            onChange={(e) => {
-              if (e.target.value.length <= 250) {
-                setNewPost(e.target.value)
-              }
-            }}
-            placeholder="What's on your mind?"
-            className="resize-none"
-          />
-          <p className="text-sm text-muted-foreground mt-1">
-            {newPost.length} / 250 characters
-          </p>
-        </CardContent>
+    <div className="min-h-screen bg-black text-white pl-48">
+      <Sidebar />
+      <main className="max-w-xl mx-auto p-4">
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Post something, {session.user?.name}</CardTitle>
+          </CardHeader>
+          <Separator />
+          <CardContent>
+            <Textarea
+              value={newPost}
+              onChange={(e) => {
+                if (e.target.value.length <= 250) {
+                  setNewPost(e.target.value)
+                }
+              }}
+              placeholder="What's on your mind?"
+              className="resize-none"
+            />
+            <p className="text-sm text-muted-foreground mt-1">
+              {newPost.length} / 250 characters
+            </p>
+          </CardContent>
 
-        <CardFooter>
-          <Button onClick={handlePost}>Post</Button>
-          <Button variant="ghost" className="ml-auto" onClick={() => signOut()}>
-            Sign out
-          </Button>
-        </CardFooter>
-      </Card>
+          <CardFooter>
+            <Button onClick={handlePost}>Post</Button>
+            <Button variant="ghost" className="ml-auto" onClick={() => signOut()}>
+              Sign out
+            </Button>
+          </CardFooter>
+        </Card>
 
-      {loading ? (
-        <p>Loading posts...</p>
-      ) : (
-        <div className="space-y-4">
-          {posts.map((post) => (
-            <Card key={post.id}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <img
-                    src={post.author.image || "/default-avatar.png"}
-                    alt="pfp"
-                    className="w-8 h-8 rounded-full"
-                  />
-                  <div>
-                    <p className="font-medium">
-                      {post.author.displayName || post.author.accountUsername}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(post.createdAt).toLocaleString()}
-                    </p>
+        {loading ? (
+          <Loading />
+        ) : (
+          <div className="space-y-4">
+            {posts.map((post) => (
+              <Card key={post.id}>
+                <CardHeader>
+                  <div className="flex items-center gap-3 justify-between">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={post.author.image || "/default-avatar.png"}
+                        alt="pfp"
+                        className="w-8 h-8 rounded-full"
+                      />
+                      <div>
+                        <p className="font-medium">
+                          {post.author.displayName || post.author.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          @{post.author.name || "unknown"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(post.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    {session.user?.name === post.author.name && (
+                      <DeletePostDialog
+                        postId={post.id}
+                        onConfirm={async (id) => {
+                          await fetch(`/api/posts?id=${id}`, { method: "DELETE" })
+                          fetchPosts()
+                        }}
+                      />
+                    )}
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflowWrap: "break-word" }}>
-                  {post.content}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </main>
+                </CardHeader>
+                <CardContent>
+                  <p style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflowWrap: "break-word" }}>
+                    {post.content}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
   )
 }
 

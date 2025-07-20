@@ -1,10 +1,11 @@
 "use client"
 
-import { useSession, SessionProvider } from "next-auth/react"
+import { useSession, signOut, SessionProvider } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { redirect } from "next/navigation"
 import {
   Card,
   CardHeader,
@@ -51,9 +52,7 @@ function SettingsContent() {
     return <p className="text-center py-10">Loading...</p>
   }
 
-  if (!session) {
-    return <p className="text-center py-10">Please sign in to access your settings.</p>
-  }
+  if (!session) redirect("/signin")
 
   return (
     <main className="max-w-2xl mx-auto p-6">
@@ -65,6 +64,34 @@ function SettingsContent() {
         <Separator />
 
         <CardContent className="space-y-4 mt-4">
+          {/* Profile Image */}
+          {session.user?.image && (
+            <div className="flex justify-center mb-4">
+              <img
+                src={session.user.image}
+                alt="Profile Image"
+                className="w-24 h-24 rounded-full object-cover"
+              />
+            </div>
+          )}
+
+          {/* Display user info */}
+          <div>
+            <label className="text-sm font-medium">Name</label>
+            <p className="mb-2">{session.user?.name || "N/A"}</p>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Email</label>
+            <p className="mb-2">{session.user?.email || "N/A"}</p>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Username</label>
+            <p className="mb-2">{session.user?.name || "N/A"}</p>
+          </div>
+
+          {/* Editable fields */}
           <div>
             <label className="text-sm font-medium">Display Name</label>
             <Input
@@ -87,9 +114,16 @@ function SettingsContent() {
 
         <CardFooter className="flex justify-between items-center">
           <div className="text-sm text-muted-foreground">{saved && "Changes saved."}</div>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
+
+          <div className="flex gap-4">
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Saving..." : "Save Changes"}
+            </Button>
+
+            <Button variant="destructive" onClick={() => signOut()}>
+              Logout
+            </Button>
+          </div>
         </CardFooter>
       </Card>
     </main>
