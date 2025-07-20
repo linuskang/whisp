@@ -162,23 +162,26 @@ function WhispContent() {
                   <Button variant="ghost" className="ml-auto">
                     Reply
                   </Button>
-                  <ReportAbuseAlertDialog
-                    postId={post.id}
-                    postContent={post.content}
-                    onReport={async (postId, reason) => {
-                      try {
-                        const res = await fetch("/api/report/post", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ postId, postContent: post.content, reason }),
-                        })
-                        if (!res.ok) throw new Error("Failed to report abuse")
-                        alert("Report submitted. Thanks for keeping Whisp safe!")
-                      } catch {
-                        alert("Failed to submit report. Please try again later.")
-                      }
-                    }}
-                  />
+
+                  {session.user?.name !== post.author.name && (
+                    <ReportAbuseAlertDialog
+                      postId={post.id}
+                      postContent={post.content}
+                      onReport={async (postId, reason) => {
+                        try {
+                          const res = await fetch("/api/report/post", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ postId, postContent: post.content, reason }),
+                          })
+                          if (!res.ok) throw new Error("Failed to report abuse")
+                          alert("Report submitted. Thanks for keeping Whisp safe!")
+                        } catch {
+                          alert("Failed to submit report. Please try again later.")
+                        }
+                      }}
+                    />
+                  )}
                 </CardFooter>
               </Card>
             ))}
