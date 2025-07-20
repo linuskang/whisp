@@ -90,12 +90,12 @@ function WhispContent() {
           <CardContent>
             <Textarea
               value={newPost}
-              onChange={(e) => e.target.value.length <= 250 && setNewPost(e.target.value)}
+              onChange={(e) => e.target.value.length <= 300 && setNewPost(e.target.value)}
               placeholder="What's on your mind?"
               className="resize-none"
             />
             <p className="text-sm text-muted-foreground mt-1">
-              {newPost.length} / 250 characters
+              {newPost.length} / 300 characters
             </p>
           </CardContent>
           <CardFooter>

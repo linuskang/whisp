@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
   const { content } = await req.json()
 
-  if (!content || content.length > 250) {
+  if (!content || content.length > 300) {
     return new NextResponse("Invalid content", { status: 400 })
   }
 
