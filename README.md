@@ -27,7 +27,7 @@ Access Whisp at http://localhost:3000 and signin!
 
 ## Licensing
 
-Blogger is licensed under the **Attribution-NonCommercial 4.0 International** license.
+Whisp is licensed under the **Attribution-NonCommercial 4.0 International** license.
 
 Please refer to **[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)** for more information.
 
