@@ -12,7 +12,6 @@ import { DeletePostDialog } from "@/components/deletePostDialog"
 import Loading from "@/components/loading"
 import { ReportAbuseAlertDialog } from "@/components/reportAbuseDialog"
 
-
 interface Post {
   id: string
   content: string
@@ -22,28 +21,9 @@ interface Post {
     name: string
     image: string | null
   }
+  likes?: number
+  likedByUser?: boolean
 }
-
-async function handleReport(postId: string, postContent: string) {
-  try {
-    const res = await fetch("/api/report-abuse", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        postId,
-        postContent,
-        reason: "Inappropriate content", // or prompt user for reason if you want
-      }),
-    })
-
-    if (!res.ok) throw new Error("Failed to report abuse")
-
-    alert("Report submitted. Thanks for keeping Whisp safe!")
-  } catch {
-    alert("Failed to submit report. Please try again later.")
-  }
-}
-
 
 function WhispContent() {
   const { data: session, status } = useSession()
@@ -54,8 +34,17 @@ function WhispContent() {
   const fetchPosts = async () => {
     setLoading(true)
     const res = await fetch("/api/posts")
-    const data = await res.json()
-    setPosts(data)
+    const data: Post[] = await res.json()
+
+    const postsWithLikes = await Promise.all(
+      data.map(async (post) => {
+        const res = await fetch(`/api/posts/likes?postId=${post.id}`)
+        const { count, liked } = await res.json()
+        return { ...post, likes: count, likedByUser: liked }
+      })
+    )
+
+    setPosts(postsWithLikes)
     setLoading(false)
   }
 
@@ -74,13 +63,20 @@ function WhispContent() {
     fetchPosts()
   }
 
-  if (status === "loading") {
-    return <p className="text-center py-10">Loading...</p>
+  const toggleLike = async (postId: string, liked: boolean | undefined) => {
+    const method = liked ? "DELETE" : "POST"
+    await fetch("/api/posts/like", {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ postId }),
+    })
+
+    fetchPosts()
   }
 
-  if (!session) {
-    return <SignInComponent />
-  }
+
+  if (status === "loading") return <Loading />
+  if (!session) return <SignInComponent />
 
   return (
     <div className="min-h-screen bg-black text-white pl-48">
@@ -94,11 +90,7 @@ function WhispContent() {
           <CardContent>
             <Textarea
               value={newPost}
-              onChange={(e) => {
-                if (e.target.value.length <= 250) {
-                  setNewPost(e.target.value)
-                }
-              }}
+              onChange={(e) => e.target.value.length <= 250 && setNewPost(e.target.value)}
               placeholder="What's on your mind?"
               className="resize-none"
             />
@@ -106,7 +98,6 @@ function WhispContent() {
               {newPost.length} / 250 characters
             </p>
           </CardContent>
-
           <CardFooter>
             <Button onClick={handlePost}>Post</Button>
             <Button variant="ghost" className="ml-auto" onClick={() => signOut()}>
@@ -154,31 +145,29 @@ function WhispContent() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflowWrap: "break-word" }}>
-                    {post.content}
-                  </p>
+                  <p style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{post.content}</p>
                 </CardContent>
-                <CardFooter>
-                  <Button variant="ghost" className="ml-auto">
-                    Reply
+                <CardFooter className="flex gap-3 justify-end">
+                  <Button
+                    variant={post.likedByUser ? "default" : "ghost"}
+                    onClick={() => toggleLike(post.id, post.likedByUser)}
+                  >
+                    👍 {post.likes ?? 0}
                   </Button>
+                  <Button variant="ghost">Reply</Button>
 
                   {session.user?.name !== post.author.name && (
                     <ReportAbuseAlertDialog
                       postId={post.id}
                       postContent={post.content}
                       onReport={async (postId, reason) => {
-                        try {
-                          const res = await fetch("/api/report/post", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ postId, postContent: post.content, reason }),
-                          })
-                          if (!res.ok) throw new Error("Failed to report abuse")
-                          alert("Report submitted. Thanks for keeping Whisp safe!")
-                        } catch {
-                          alert("Failed to submit report. Please try again later.")
-                        }
+                        const res = await fetch("/api/report/post", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ postId, postContent: post.content, reason }),
+                        })
+                        if (!res.ok) alert("Failed to report abuse")
+                        else alert("Thanks for reporting.")
                       }}
                     />
                   )}
