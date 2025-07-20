@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { discordLog } from "@/lib/discordLogging"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -61,6 +62,19 @@ export async function POST(req: Request) {
       },
     })
 
+    const embed = {
+      title: "New Post Created",
+      description: `A new post has been created by @**${user.name || "Unknown User"}**.`,
+      color: 0x00ff00,
+      timestamp: new Date().toISOString(),
+      fields: [
+        { name: "Content", value: content, inline: false },
+        { name: "Author ID", value: user.id, inline: true },
+        { name: "Post ID", value: post.id, inline: true },
+      ],
+    }
+
+    await discordLog(embed)
     return NextResponse.json(post)
   } catch (error) {
     console.error(error)
@@ -84,7 +98,7 @@ export async function DELETE(req: Request) {
   try {
     const post = await prisma.post.findUnique({
       where: { id: postId },
-      select: { authorId: true }
+      select: { authorId: true, content: true }
     })
 
     if (!post) {
@@ -102,6 +116,19 @@ export async function DELETE(req: Request) {
     await prisma.post.delete({
       where: { id: postId }
     })
+
+    const embed = {
+      title: "Post Deleted",
+      description: `A post was deleted by @**${user.name || "Unknown User"}**.`,
+      color: 0xff0000,
+      timestamp: new Date().toISOString(),
+      fields: [
+        { name: "Post ID", value: postId, inline: true },
+        { name: "Author ID", value: user.id, inline: true },
+        { name: "Deleted Content", value: post.content || "[No content]", inline: false },
+      ],
+    }
+    await discordLog(embed)
 
     return NextResponse.json({ message: "Post deleted" })
   } catch (error) {

@@ -10,6 +10,7 @@ import SignInComponent from "@/components/signin"
 import Sidebar from "@/components/sidebar"
 import { DeletePostDialog } from "@/components/deletePostDialog"
 import Loading from "@/components/loading"
+import { ReportAbuseAlertDialog } from "@/components/reportAbuseDialog"
 
 
 interface Post {
@@ -22,6 +23,27 @@ interface Post {
     image: string | null
   }
 }
+
+async function handleReport(postId: string, postContent: string) {
+  try {
+    const res = await fetch("/api/report-abuse", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        postId,
+        postContent,
+        reason: "Inappropriate content", // or prompt user for reason if you want
+      }),
+    })
+
+    if (!res.ok) throw new Error("Failed to report abuse")
+
+    alert("Report submitted. Thanks for keeping Whisp safe!")
+  } catch {
+    alert("Failed to submit report. Please try again later.")
+  }
+}
+
 
 function WhispContent() {
   const { data: session, status } = useSession()
@@ -136,6 +158,28 @@ function WhispContent() {
                     {post.content}
                   </p>
                 </CardContent>
+                <CardFooter>
+                  <Button variant="ghost" className="ml-auto">
+                    Reply
+                  </Button>
+                  <ReportAbuseAlertDialog
+                    postId={post.id}
+                    postContent={post.content}
+                    onReport={async (postId, reason) => {
+                      try {
+                        const res = await fetch("/api/report/post", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ postId, postContent: post.content, reason }),
+                        })
+                        if (!res.ok) throw new Error("Failed to report abuse")
+                        alert("Report submitted. Thanks for keeping Whisp safe!")
+                      } catch {
+                        alert("Failed to submit report. Please try again later.")
+                      }
+                    }}
+                  />
+                </CardFooter>
               </Card>
             ))}
           </div>
