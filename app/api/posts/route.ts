@@ -40,9 +40,9 @@ export async function POST(req: Request) {
     return new NextResponse("Unauthorized", { status: 401 })
   }
 
-  const { content } = await req.json()
+  const { content, imageUrl } = await req.json()
 
-  if (!content || content.length > 300) {
+  if ((!content || content.length > 300) && !imageUrl) {
     return new NextResponse("Invalid content", { status: 400 })
   }
 
@@ -58,6 +58,7 @@ export async function POST(req: Request) {
     const post = await prisma.post.create({
       data: {
         content,
+        imageUrl,
         authorId: user.id,
       },
     })
@@ -72,6 +73,10 @@ export async function POST(req: Request) {
         { name: "Author ID", value: user.id, inline: true },
         { name: "Post ID", value: post.id, inline: true },
       ],
+    }
+
+    if (imageUrl) {
+      embed.fields.push({ name: "Image URL", value: imageUrl, inline: false })
     }
 
     await discordLog(embed)

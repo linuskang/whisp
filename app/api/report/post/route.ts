@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
     const post = await prisma.post.findUnique({
       where: { id: postId },
-      select: { authorId: true },
+      select: { authorId: true, imageUrl: true, },
     })
 
     if (!post) {
@@ -39,18 +39,22 @@ export async function POST(req: Request) {
       return new NextResponse("You can't report your own post", { status: 403 })
     }
 
-    await discordLog({
+    const embed: any = {
       title: "Abuse Report",
       description: `User @**${session.user.name}** (${session.user.email}) reported a post.`,
       color: 0xffa500,
+      timestamp: new Date().toISOString(),
       fields: [
         { name: "Reported Post ID", value: postId, inline: true },
         { name: "Report Reason", value: reason || "No reason provided", inline: false },
         { name: "Post Content", value: postContent, inline: false },
       ],
-      timestamp: new Date().toISOString(),
-    })
-
+    }
+    if (post.imageUrl) {
+      embed.fields.push({ name: "Post Image URL", value: post.imageUrl, inline: false })
+    }
+    await discordLog(embed)
+    
     return NextResponse.json({ message: "Report submitted" })
   } catch (error) {
     console.error("Failed to submit report:", error)

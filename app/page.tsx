@@ -16,6 +16,7 @@ interface Post {
   id: string
   content: string
   createdAt: string
+  imageUrl?: string
   author: {
     displayName: string | null
     name: string
@@ -30,6 +31,17 @@ function WhispContent() {
   const [posts, setPosts] = useState<Post[]>([])
   const [newPost, setNewPost] = useState("")
   const [loading, setLoading] = useState(true)
+
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImageFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
+  }
 
   const fetchPosts = async () => {
     setLoading(true)
@@ -53,13 +65,40 @@ function WhispContent() {
   }, [])
 
   const handlePost = async () => {
-    if (!newPost.trim()) return
+    if (!newPost.trim() && !imageFile) return
+
+    let imageUrl: string | null = null
+
+    if (imageFile) {
+      const formData = new FormData()
+      formData.append("image", imageFile)
+
+      const res = await fetch("https://whispusercontent.linus.id.au/upload", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_WHISP_CDN_API_TOKEN!}`,
+        },
+        body: formData,
+      })
+
+      if (!res.ok) {
+        alert("Image upload failed")
+        return
+      }
+
+      const data = await res.json()
+      imageUrl = `https://whispusercontent.linus.id.au${data.url}`
+    }
+
     await fetch("/api/posts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: newPost }),
+      body: JSON.stringify({ content: newPost, imageUrl }),
     })
+
     setNewPost("")
+    setImageFile(null)
+    setImagePreview(null)
     fetchPosts()
   }
 
@@ -94,6 +133,14 @@ function WhispContent() {
               placeholder="What's on your mind?"
               className="resize-none"
             />
+            <input type="file" accept="image/*" onChange={handleImageChange} className="mt-2" />
+            {imagePreview && (
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="mt-2 rounded max-h-48 border border-white/20"
+              />
+            )}
             <p className="text-sm text-muted-foreground mt-1">
               {newPost.length} / 300 characters
             </p>
@@ -146,6 +193,13 @@ function WhispContent() {
                 </CardHeader>
                 <CardContent>
                   <p style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{post.content}</p>
+                  {post.imageUrl && (
+                    <img
+                      src={post.imageUrl}
+                      alt="[Content Deleted]"
+                      className="mt-3 rounded max-h-60 border border-white/20"
+                    />
+                  )}
                 </CardContent>
                 <CardFooter className="flex gap-3 justify-end">
                   <Button

@@ -30,6 +30,7 @@ model Post {
   content   String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  imageUrl  String?
 
   author   User   @relation(fields: [authorId], references: [id])
   authorId String
