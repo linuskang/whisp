@@ -21,7 +21,7 @@ interface Post {
     displayName: string | null
     name: string
     image: string | null
-  }
+  } 
   likes?: number
   likedByUser?: boolean
 }
