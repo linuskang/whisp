@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { redirect } from "next/navigation"
+import Sidebar from "@/components/sidebar"
+
 import {
   Card,
   CardHeader,
@@ -55,78 +57,81 @@ function SettingsContent() {
   if (!session) redirect("/signin")
 
   return (
-    <main className="max-w-2xl mx-auto p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Account Settings</CardTitle>
-        </CardHeader>
+    <div className="min-h-screen bg-black text-white pl-48">
+      <Sidebar />
+      <main className="max-w-2xl mx-auto p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Account Settings</CardTitle>
+          </CardHeader>
 
-        <Separator />
+          <Separator />
 
-        <CardContent className="space-y-4 mt-4">
-          {/* Profile Image */}
-          {session.user?.image && (
-            <div className="flex justify-center mb-4">
-              <img
-                src={session.user.image}
-                alt="Profile Image"
-                className="w-24 h-24 rounded-full object-cover"
+          <CardContent className="space-y-4 mt-4">
+            {/* Profile Image */}
+            {session.user?.image && (
+              <div className="flex justify-center mb-4">
+                <img
+                  src={session.user.image}
+                  alt="Profile Image"
+                  className="w-24 h-24 rounded-full object-cover"
+                />
+              </div>
+            )}
+
+            {/* Display user info */}
+            <div>
+              <label className="text-sm font-medium">Name</label>
+              <p className="mb-2">{session.user?.name || "N/A"}</p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Email</label>
+              <p className="mb-2">{session.user?.email || "N/A"}</p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Username</label>
+              <p className="mb-2">{session.user?.name || "N/A"}</p>
+            </div>
+
+            {/* Editable fields */}
+            <div>
+              <label className="text-sm font-medium">Display Name</label>
+              <Input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="e.g. Linus Kang"
               />
             </div>
-          )}
 
-          {/* Display user info */}
-          <div>
-            <label className="text-sm font-medium">Name</label>
-            <p className="mb-2">{session.user?.name || "N/A"}</p>
-          </div>
+            <div>
+              <label className="text-sm font-medium">Bio</label>
+              <Textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Say something about yourself..."
+                className="resize-none"
+              />
+            </div>
+          </CardContent>
 
-          <div>
-            <label className="text-sm font-medium">Email</label>
-            <p className="mb-2">{session.user?.email || "N/A"}</p>
-          </div>
+          <CardFooter className="flex justify-between items-center">
+            <div className="text-sm text-muted-foreground">{saved && "Changes saved."}</div>
 
-          <div>
-            <label className="text-sm font-medium">Username</label>
-            <p className="mb-2">{session.user?.name || "N/A"}</p>
-          </div>
+            <div className="flex gap-4">
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
 
-          {/* Editable fields */}
-          <div>
-            <label className="text-sm font-medium">Display Name</label>
-            <Input
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="e.g. Linus Kang"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Bio</label>
-            <Textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Say something about yourself..."
-              className="resize-none"
-            />
-          </div>
-        </CardContent>
-
-        <CardFooter className="flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">{saved && "Changes saved."}</div>
-
-          <div className="flex gap-4">
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
-            </Button>
-
-            <Button variant="destructive" onClick={() => signOut()}>
-              Logout
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
-    </main>
+              <Button variant="destructive" onClick={() => signOut()}>
+                Logout
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
+      </main>
+    </div>
   )
 }
 

@@ -3,6 +3,7 @@
 import { signIn, signOut, useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
+import Sidebar from "@/components/sidebar"
 import {
   Avatar,
   AvatarFallback,
@@ -59,64 +60,67 @@ function HomeContent() {
   }
 
   return (
-    <main className="flex justify-center items-center min-h-screen bg-background text-foreground">
-      {session ? (
-        <Card className="max-w-md w-full shadow-lg">
-          <CardHeader>
-            <CardTitle>
-              Welcome, {userData?.displayName ?? session.user?.name ?? "User"}!
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center gap-4">
-            <Avatar className="w-24 h-24">
-              <AvatarImage src={userData?.image ?? session.user?.image ?? undefined} />
-              <AvatarFallback>
-                {(userData?.displayName ?? session.user?.name ?? "?")[0]?.toUpperCase() ?? "?"}
-              </AvatarFallback>
-            </Avatar>
+    <div className="min-h-screen bg-black text-white pl-48">
+      <Sidebar />
+      <main className="flex justify-center items-center min-h-screen text-foreground">
+        {session ? (
+          <Card className="max-w-md w-full shadow-lg">
+            <CardHeader>
+              <CardTitle>
+                Welcome, {userData?.displayName ?? session.user?.name ?? "User"}!
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center gap-4">
+              <Avatar className="w-24 h-24">
+                <AvatarImage src={userData?.image ?? session.user?.image ?? undefined} />
+                <AvatarFallback>
+                  {(userData?.displayName ?? session.user?.name ?? "?")[0]?.toUpperCase() ?? "?"}
+                </AvatarFallback>
+              </Avatar>
 
-            <p className="text-center text-sm text-muted-foreground">
-              <strong>Username:</strong> {userData?.accountUsername ?? session.user?.name}
-            </p>
-
-            <p className="text-center text-sm text-muted-foreground">
-              <strong>Email:</strong> {session.user?.email ?? "Not available"}
-            </p>
-
-            {userData?.bio && (
-              <p className="text-center text-sm text-muted-foreground italic">"{userData.bio}"</p>
-            )}
-
-            <p className="text-center text-sm text-muted-foreground">
-              <strong>Member since:</strong>{" "}
-              {userData ? format(new Date(userData.dateJoined), "PP") : "Unknown"}
-            </p>
-
-            <p className="text-center text-sm text-muted-foreground">
-              <strong>Verified:</strong> {userData?.isVerified ? "Yes ✅" : "No ❌"}
-            </p>
-
-            <p className="text-center text-sm text-muted-foreground">
-              <strong>Admin:</strong> {userData?.isAdmin ? "Yes 👑" : "No"}
-            </p>
-
-            {session.expires && (
-              <p className="text-center text-xs text-muted-foreground">
-                Session expires: {format(new Date(session.expires), "PPpp")}
+              <p className="text-center text-sm text-muted-foreground">
+                <strong>Username:</strong> {userData?.accountUsername ?? session.user?.name}
               </p>
-            )}
-          </CardContent>
-          <Separator />
-          <CardFooter className="flex justify-center">
-            <Button variant="destructive" onClick={() => signOut()}>
-              Sign Out
-            </Button>
-          </CardFooter>
-        </Card>
-      ) : (
-        <Button onClick={() => signIn("discord")}>Sign in with Discord</Button>
-      )}
-    </main>
+
+              <p className="text-center text-sm text-muted-foreground">
+                <strong>Email:</strong> {session.user?.email ?? "Not available"}
+              </p>
+
+              {userData?.bio && (
+                <p className="text-center text-sm text-muted-foreground italic">"{userData.bio}"</p>
+              )}
+
+              <p className="text-center text-sm text-muted-foreground">
+                <strong>Member since:</strong>{" "}
+                {userData ? format(new Date(userData.dateJoined), "PP") : "Unknown"}
+              </p>
+
+              <p className="text-center text-sm text-muted-foreground">
+                <strong>Verified:</strong> {userData?.isVerified ? "Yes ✅" : "No ❌"}
+              </p>
+
+              <p className="text-center text-sm text-muted-foreground">
+                <strong>Admin:</strong> {userData?.isAdmin ? "Yes 👑" : "No"}
+              </p>
+
+              {session.expires && (
+                <p className="text-center text-xs text-muted-foreground">
+                  Session expires: {format(new Date(session.expires), "PPpp")}
+                </p>
+              )}
+            </CardContent>
+            <Separator />
+            <CardFooter className="flex justify-center">
+              <Button variant="destructive" onClick={() => signOut()}>
+                Sign Out
+              </Button>
+            </CardFooter>
+          </Card>
+        ) : (
+          <Button onClick={() => signIn("discord")}>Sign in with Discord</Button>
+        )}
+      </main>
+    </div>
   )
 }
 
