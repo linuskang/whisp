@@ -9,6 +9,9 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const userId = searchParams.get("userId")
 
+  const session = await getServerSession(authOptions)
+  const currentUserId = session?.user?.id || null
+
   try {
     const posts = await prisma.post.findMany({
       where: userId ? { authorId: userId } : undefined,
@@ -22,10 +25,45 @@ export async function GET(req: Request) {
             image: true,
           },
         },
+        likes: true,
       },
     })
 
-    return NextResponse.json(posts)
+    let userIdForLike: string | null = null
+    if (session?.user?.email) {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+      })
+      if (user) {
+        userIdForLike = user.id
+      }
+    }
+
+    const formattedPosts = await Promise.all(posts.map(async (post) => {
+      let likedByUser = false
+      if (userIdForLike) {
+        const userLike = await prisma.like.findUnique({
+          where: {
+            userId_postId: {
+              userId: userIdForLike,
+              postId: post.id,
+            },
+          },
+        })
+        likedByUser = !!userLike
+      }
+      return {
+        id: post.id,
+        content: post.content,
+        createdAt: post.createdAt,
+        imageUrl: post.imageUrl,
+        author: post.author,
+        likes: post.likes.length,
+        likedByUser,
+      }
+    }))
+
+    return NextResponse.json(formattedPosts)
   } catch (error) {
     console.error(error)
     return new NextResponse("Failed to fetch posts", { status: 500 })
