@@ -28,6 +28,7 @@ interface PostCardProps {
   post: Post
   currentUsername: string
   onDelete: (postId: string) => Promise<void>
+ 
   onLikeToggle: (postId: string, liked: boolean | undefined) => Promise<void>
 }
 
