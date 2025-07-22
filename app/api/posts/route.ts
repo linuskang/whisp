@@ -10,7 +10,6 @@ export async function GET(req: Request) {
   const userId = searchParams.get("userId")
 
   const session = await getServerSession(authOptions)
-  const currentUserId = session?.user?.id || null
 
   try {
     const posts = await prisma.post.findMany({
